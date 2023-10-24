@@ -1,0 +1,22 @@
+/* style.css for all examples */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+
+  /* This centers our sketch horizontally. */
+  justify-content: center;
+
+  /* This centers our sketch vertically. */
+  align-items: center;
+
+  /* make the dropdown appear above everything else */
+  /* and center it horizontally */
+  position: relative;
+  z-index: 1;
+}
