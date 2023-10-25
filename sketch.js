@@ -1,7 +1,3 @@
-let hat = [[0, 0], [0.5, 0.5], [1, 0]];
-let box = [[0, 0], [0, 1], [1, 1], [1, 0]];
-let resultConv = [];
-
 let points1 = [];
 let points2 = [];
 
@@ -10,6 +6,7 @@ let BSplineKernel = [];
 
 // a dicionary to store conv resutlts regarding different counter values
 let convResults = {};
+let folded = [];
 
 let signalDegree = 1;
 let kernelDegree = 1;
@@ -17,8 +14,6 @@ let conv = 0;
 
 let selectedPoint1 = null;
 let selectedPoint2 = null;
-
-let signalSel, kernelSel;
 
 let offsetX = 0;
 let offsetY = 0;
@@ -29,6 +24,11 @@ let speed = 0;
 let stride = 2;
 let counter = -boxWidth;
 let pointsChanged = false;
+
+let signals = {
+    'step': [[-maxWidth/8, 0], [-maxWidth/8, maxHeight/4], [maxWidth/8, 0], [maxWidth/8, 0]],
+    'hat': [[-maxWidth/4, 0], [0, maxHeight/4], [maxWidth/4, 0]],
+}
 
 function setupPage() {
     background(255);
@@ -47,6 +47,20 @@ function setupPage() {
     noFill();
 
     drawCoords();
+
+    // If a point is selected, move it with the mouse
+    if (selectedPoint1) {
+        selectedPoint1.x = mouseX - offsetX;
+        selectedPoint1.y = mouseY - offsetY;
+        pointsChanged = true;
+    }
+
+    // If a point is selected, move it with the mouse
+    if (selectedPoint2) {
+        selectedPoint2.x = mouseX - offsetX;
+        selectedPoint2.y = mouseY - offsetY;
+        pointsChanged = true;
+    }
 }
 
 
@@ -77,42 +91,56 @@ function drawPoints(points) {
     stroke(0);
 }
 
-function loadCurve() {
-    // let item = sel.value();
-    // background(200);
-    // text('It is a ' + item + '!', 50, 50);
+
+function degreeHandling() {
+    if ((keyCode === UP_ARROW || keyCode === DOWN_ARROW) && (mouseX > 0 && mouseX < boxWidth && mouseY > 0 && mouseY < boxHeight)) {
+        if (keyCode === UP_ARROW && keyIsPressed) {
+            signalDegree += 1;
+        } else if (keyCode === DOWN_ARROW && keyIsPressed) {
+            signalDegree -= 1;
+        }
+    } else if ((keyCode === UP_ARROW || keyCode === DOWN_ARROW) && (mouseX > boxWidth && mouseX < boxWidth*2 && mouseY > 0 && mouseY < boxHeight)) {
+        if (keyCode === UP_ARROW && keyIsPressed) {
+            kernelDegree += 1;
+        } else if (keyCode === DOWN_ARROW && keyIsPressed) {
+            kernelDegree -= 1;
+        }
+    }
 }
 
-function saveConv() {
-    // sel.option('conv');
-}
-
+let figCount = 0;
 
 function setup() {
     let c = createCanvas(1100, 1000);
 
-    let signalSel = createSelect();
-    signalSel.position(10, 10);
-    signalSel.option('box');
-    signalSel.option('hat');
-    signalSel.option('bspline');
-    signalSel.selected('hat');
-    signalSel.changed(loadCurve);
-    // show the next drop down beneath the previous one
+    // let signalSel = createSelect();
+    // signalSel.position(10+boxWidth, 70);
+    // signalSel.option('step');
+    // signalSel.option('hat');
+    // signalSel.option('quadratic');
+    // signalSel.selected('step');
+    // signalSel.changed(() => {
+        
+    // });
 
-    let kernelSel = createSelect();
-    kernelSel.position(boxWidth*2, 10);
-    kernelSel.option('box');
-    kernelSel.option('hat');
-    kernelSel.option('bspline');
-    kernelSel.selected('box');
-    kernelSel.changed(loadCurve);
+    // let kernelSel = createSelect();
+    // kernelSel.position(10+boxWidth*2, 70);
+    // kernelSel.option('step');
+    // kernelSel.option('hat');
+    // kernelSel.option('quadratic');
+    // kernelSel.selected('step');
+    // kernelSel.changed(() => {
 
-    // button to save the convolution result curve
-    button = createButton('save');
-    button.position(boxWidth*2, boxHeight*2.5);
-    // set the triger function
-    // button.mousePressed(saveConv(signalSel));
+    // });
+
+    // let saveButton = createButton('Save');
+    // saveButton.position(10+boxWidth*3, 70);
+    // saveButton.mousePressed(() => {
+    //     // save the current convolution result to signals dictionary
+    //     signals["newCurve"+figCount] = convResults;
+    //     console.log(signals.keys());
+    //     figCount++;
+    // });
 
     p5bezier.initBezier(c);
     noFill();
@@ -120,113 +148,32 @@ function setup() {
 
 function draw() {
     setupPage();
+    degreeHandling();
 
     drawPoints(points1);
     drawPoints(points2);
     
 
-    // If a point is selected, move it with the mouse
-    if (selectedPoint1) {
-        selectedPoint1.x = mouseX - offsetX;
-        selectedPoint1.y = mouseY - offsetY;
-        pointsChanged = true;
-    }
-
-    // If a point is selected, move it with the mouse
-    if (selectedPoint2) {
-        selectedPoint2.x = mouseX - offsetX;
-        selectedPoint2.y = mouseY - offsetY;
-        pointsChanged = true;
-    }
-
-    // Draw the curve
-    temp = [];
-    for (let i = 0; i < points1.length; i++) {
-        temp.push([points1[i].x, points1[i].y]);
-    }
-    if (temp.length > 2) {
-        let curve1 = p5bezier.newBezierObj(temp);
-        curve1.draw();
-        shiftDrawPoints(points1, boxWidth/2, boxHeight);
-        bottomSignal = curve1['vertexList'];
-    }
-    
-    temp = [];
-     
-    for (let i = 0; i < points2.length; i++) {
-        temp.push([points2[i].x, points2[i].y]);
-    }
-    if (temp.length > 2) {  
-        let curve2 = p5bezier.newBezierObj(temp);
-        curve2.draw();
-        
-        animateKernel(points2, counter);
-
-        bottomKernel = curve2['vertexList'];
-        // shift kernel to be centered at the bottom panel
-        // bottomKernel = bottomKernel.map(x => [x[0]-boxWidth*1.5, x[1]+boxHeight]);
-
-    }
-
-    // shift signal to be centered at the bottom panel
-
-
     if (keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW) {
-        // perform convolution
-
-        // console.log(bottomSignal[0] + " " + bottomKernel[0]);
-
-        translatedSignal = bottomSignal.map(x => [x[0] - boxWidth/2, (x[1] - boxHeight*0.5)]);
-        translatedKernel = bottomKernel.map(x => [x[0] - boxWidth*1.5, (x[1] - boxHeight*0.5)]);
-        // calculate average x, y of translated signal and kernel
-        signalAttrs = [0, 0];
-        kernelAttrs = [0, 0];
-        for (let i =0; i < 500; i++) {
-            signalAttrs[0] += translatedSignal[i][0];
-            signalAttrs[1] += translatedSignal[i][1];
-            kernelAttrs[0] += translatedKernel[i][0];
-            kernelAttrs[1] += translatedKernel[i][1];
-        }
-        signalAttrs[0] /= 500;
-        kernelAttrs[0] /= 500;
-        signalAttrs[1] /= 500;
-        kernelAttrs[1] /= 500;
 
         
+
         if (keyCode === LEFT_ARROW && keyIsPressed) {
-            conv = convolutionAtT(translatedSignal, translatedKernel, counter)*boxHeight*0.5;
+            conv = fold(bottomBSplineSignal, bottomBSplineKernel, counter);
+            conv = conv * boxHeight * 0.25;
             convResults[counter] = conv;
             speed = -stride;
-            console.log(conv);
-            console.log("counter " + counter);
-            console.log(signalAttrs[0] + " " + signalAttrs[1]);
-            console.log(kernelAttrs[0] + " " + kernelAttrs[1]);
-
-
         } else if (keyCode === RIGHT_ARROW && keyIsPressed) {
-            conv = convolutionAtT(translatedSignal, translatedKernel, counter)*boxHeight*0.5;
+            conv = fold(bottomBSplineSignal, bottomBSplineKernel, counter);
+            conv = conv * boxHeight * 0.25;
             convResults[counter] = conv;
             speed = stride;
-            console.log(conv);
-            console.log("counter " + counter);
-            console.log(signalAttrs[0] + " " + signalAttrs[1]);
-            console.log(kernelAttrs[0] + " " + kernelAttrs[1]);
-
         } else {
             speed = 0;
         }
     }
-    
-    if ((keyCode === UP_ARROW || keyCode === DOWN_ARROW) && (mouseX > 0 && mouseX < boxWidth && mouseY > 0 && mouseY < boxHeight)) {
-        if (keyCode === UP_ARROW && keyIsPressed) {
-            signalDegree += 1;
-        } else if (keyCode === DOWN_ARROW && keyIsPressed) {
-            signalDegree -= 1;
-        }
-    }
 
 
-    
     if (points1.length >= 3 && pointsChanged) {
         let temp = [];
         for (let i = 0; i < points1.length; i++) {
@@ -236,18 +183,47 @@ function draw() {
     }
     if (BSplineSignal.length > 1) {
         drawBSpline(BSplineSignal);
+        bottomBSplineSignal = BSplineSignal.map(x => [x[0]-boxWidth*0.5, x[1]-boxHeight*0.5]);
+        drawBSpline(bottomBSplineSignal.map(x => [x[0]+boxWidth, x[1]+boxHeight*1.5]));
     }
 
+    if (points2.length >= 3 && pointsChanged) {
+        let temp = [];
+        for (let i = 0; i < points2.length; i++) {
+            temp.push([points2[i].x, points2[i].y]);
+        }
+        BSplineKernel = CalcBSpline(temp, kernelDegree);
+    }
+    if (BSplineKernel.length > 1) {
+        drawBSpline(BSplineKernel);
+        bottomBSplineKernel = BSplineKernel.map(x => [x[0]-boxWidth*1.5, x[1]-boxHeight*0.5]);
+        drawBSpline(bottomBSplineKernel.map(x => [x[0]+counter+boxWidth, x[1]+boxHeight*1.5]));
+    }
+    
 
     // draw convolution result
     strokeWeight(5);
     stroke(0,0,250);
     for (let i = -boxWidth; i < counter; i++) {
-        line(i+boxWidth, -1*convResults[i]+boxHeight*1.5, i+boxWidth+1, -1*convResults[i+1]+boxHeight*1.5);
+        // line(i+boxWidth, -1*convResults[i]+boxHeight*1.5, i+boxWidth+1, -1*convResults[i+1]+boxHeight*1.5);
+        // point(i+boxWidth, -1*convResults[i]+boxHeight*1.5);
+        rect(i+boxWidth, -1*convResults[i]+boxHeight*1.5, 1, convResults[i]);
     }
-    // point(counter+boxWidth, -1*convResults[counter]+boxHeight*1.5);
     strokeWeight(5);
     stroke(0);
+
+    // draw signal and kernel interaction
+    strokeWeight(1);
+    stroke(0,0,250);
+
+    // for (let i = 0; i < folded.length-1; i++) {
+        // console.log(folded[i][0]+boxWidth, folded[i][1]+boxHeight*1.5);
+        // break;
+        // rect(folded[i][0]+boxWidth, folded[i][1]+boxHeight*1.5, 1, 1);
+    // }
+    strokeWeight(5);
+    stroke(0);
+
     
 
     if (counter > boxWidth) {
@@ -261,15 +237,7 @@ function draw() {
 }
 
 
-function realCoords(points, xShifted, yShifted){
-    let result = [];
-    for (let i = 0; i < points.length; i++) {
-        result.push([points[i].x - xShifted, points[i].y - yShifted]);
-    }
-    return result;
-}
-
-function evaluateFunction(curve, x, adj=0.1) {
+function evaluateFunction(curve, x, adj=0.001) {
     // return estimated value of given curve at x
     let y = 0;
     count = 0;
@@ -322,14 +290,26 @@ function animateKernel(points, i) {
     stroke(0);
 }
 
-function convolutionAtT(signal, kernel, t) {
+function fold(signal, kernel, t) {
     let result = 0;
+    folded = [];
     for (let i = -boxWidth; i < boxWidth; i++) {
         evalSig = evaluateFunction(signal, i, 0.5);
         evalKer = evaluateFunction(kernel, t-i, 0.5);
-        // console.log(evalSig + " " + evalKer);
-        // break;
         result +=  evalSig * evalKer;
+        folded.push([i, evalSig * evalKer]);
+    }
+    return result;
+}
+
+
+function foldAt(signal, kernel, t) {
+    // returns f(x)g(t-x) at x = t
+    let result = [];
+    for (let i = -boxWidth; i < boxWidth; i++) {
+        evalSig = evaluateFunction(signal, i, 0.5);
+        evalKer = evaluateFunction(kernel, t-i, 0.5);
+        result.push([i, evalSig * evalKer]);
     }
     return result;
 }
