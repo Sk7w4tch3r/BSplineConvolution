@@ -18,16 +18,16 @@ let selectedPoint2 = null;
 let offsetX = 0;
 let offsetY = 0;
 
-let boxWidth = 500;
-let boxHeight = 500;
+let boxWidth = 350;
+let boxHeight = 350;
 let speed = 0;
 let stride = 2;
 let counter = -boxWidth;
 let pointsChanged = false;
 
 let signals = {
-    'step': [[-maxWidth/8, 0], [-maxWidth/8, maxHeight/4], [maxWidth/8, 0], [maxWidth/8, 0]],
-    'hat': [[-maxWidth/4, 0], [0, maxHeight/4], [maxWidth/4, 0]],
+    'step': [[-boxWidth/8, 0], [-boxWidth/8, boxHeight/4], [boxWidth/8, 0], [boxWidth/8, 0]],
+    'hat': [[-boxWidth/4, 0], [0, boxHeight/4], [boxWidth/4, 0]],
 }
 
 function setupPage() {
@@ -111,7 +111,8 @@ function degreeHandling() {
 let figCount = 0;
 
 function setup() {
-    let c = createCanvas(1100, 1000);
+    let c = createCanvas(boxWidth*2, boxWidth*2);
+    c.parent("canvasContainer");
 
     // let signalSel = createSelect();
     // signalSel.position(10+boxWidth, 70);

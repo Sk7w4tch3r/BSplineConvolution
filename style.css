@@ -1,22 +1,21 @@
 /* style.css for all examples */
 
-html,
+
+/* align the canvas whithin the canvasContainer div to be in center of the display */
+#canvasContainer {
+  text-align: center;
+
+}
+#canvas {
+  margin: 0;
+  display: inline-block;
+} 
+
+/* set the main body text font to be sans-serif */
 body {
-  height: 100%;
+  font-family: sans-serif;
 }
 
-body {
-  margin: 0;
-  display: flex;
-
-  /* This centers our sketch horizontally. */
-  justify-content: center;
-
-  /* This centers our sketch vertically. */
-  align-items: center;
-
-  /* make the dropdown appear above everything else */
-  /* and center it horizontally */
-  position: relative;
-  z-index: 1;
+h1 {
+  text-align: center;
 }
