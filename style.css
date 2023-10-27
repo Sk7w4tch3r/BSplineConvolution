@@ -1,6 +1,3 @@
-/* style.css for all examples */
-
-
 /* align the canvas whithin the canvasContainer div to be in center of the display */
 #canvasContainer {
   text-align: center;
@@ -11,6 +8,14 @@
   display: inline-block;
 } 
 
+/* place the select dropdown on top of the canvas */
+/* #signal-select {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+} */
+
 /* set the main body text font to be sans-serif */
 body {
   font-family: sans-serif;
@@ -18,4 +23,12 @@ body {
 
 h1 {
   text-align: center;
+}
+
+/* make canvas dropdowns inline elements */
+#canvas-select {
+  display: inline-block;
+  /* center the dropdowns */
+  margin: 0 auto;
+  
 }
