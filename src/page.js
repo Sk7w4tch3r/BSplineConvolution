@@ -3,9 +3,12 @@ function setupPage() {
     background(255);
 
     strokeWeight(5);
-    rect(0, 0+offsetY, boxWidth, boxHeight+offsetY);
-    rect(boxWidth, 0+offsetY, boxWidth, boxHeight+offsetY);
-    rect(0, boxHeight+offsetY, 2*boxWidth, boxHeight+offsetY);
+    line(0, boxHeight, 2*boxWidth, boxHeight);
+    line(boxWidth, 0, boxWidth, 2*boxHeight);
+    line(0, 0, 0, 2*boxHeight);
+    line(2*boxWidth, 0, 2*boxWidth, 2*boxHeight);
+    line(0, 0, 2*boxWidth, 0);
+    line(0, 2*boxHeight, 2*boxWidth, 2*boxHeight);
 
     textSize(25);
     fill(0, 102, 153);
@@ -243,13 +246,7 @@ function mouseReleased() {
 function keyPressed() {
     // check if the key pressed is c
     if (keyCode === 67) {
-        points1 = [];
-        points2 = [];
-        pointsChanged = true;
-        BSplineSignal = [];
-        BSplineKernel = [];
-        convResults = {};
-        counter = -boxWidth;
+        destroyGraphs();
     }
 
     // check if the key pressed is a number
@@ -276,4 +273,19 @@ function keyPressed() {
             }
         }
     }
+}
+
+
+function destroyGraphs(){
+    points1 = [];
+    points2 = [];
+    pointsChanged = true;
+    BSplineSignal = [];
+    BSplineKernel = [];
+    convResults = {};
+    counter = -boxWidth;
+    bottomBSplineSignal = [];
+    bottomBSplineKernel = [];
+    strokeWeight(5);
+    stroke(0);
 }
